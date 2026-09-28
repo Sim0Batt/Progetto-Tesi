@@ -5,7 +5,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 object ProcessLauncher {
-    fun startProcess(component: ComponentConfiguration): Long {
+    fun launch(component: ComponentConfiguration): Long {
         val command = getCommand(component)
 
         val processBuilder = ProcessBuilder(command)
@@ -20,7 +20,7 @@ object ProcessLauncher {
 
 
     fun getCommand(component: ComponentConfiguration): String{
-        val javaCommand = "nohup java -Xmx${component.maxHeap} -jar ${component.path} > ${component.logFile} 2>&1 & echo $!"
-        return "sh -c '$javaCommand'"
+        val jarCommand = "nohup java -Xmx${component.maxHeap} -DflagFile=${component.flagFile} -jar ${component.path} > ${component.logFile} 2>&1 & echo $!"
+        return "sh -c '$jarCommand'"
     }
 }

@@ -9,6 +9,9 @@ class SupervisorConfiguration {
     @field:Element(name = "Log", required = true)
     var log: String? = null
 
+    @field:Element(name = "LogFile", required = true)
+    var logFile: String? = null
+
     @field:ElementList(name = "Components", required = true)
     var components: MutableList<ComponentConfiguration>? = mutableListOf()
 }
