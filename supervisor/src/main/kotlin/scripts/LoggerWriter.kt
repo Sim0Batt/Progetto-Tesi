@@ -17,16 +17,20 @@ class LoggerWriter(logFilePath: String, val componentName: String) {
 
     fun info(message: String) {
         logger.info(message)
-        logFile.appendText("[INFO] - $componentName - $message")
+        logFile.appendText("[INFO] - $componentName - $message\n")
     }
 
     fun error(message: String) {
         logger.error(message)
-        logFile.appendText("[ERROR] - $componentName - $message")
+        logFile.appendText("[ERROR] - $componentName - $message\n")
     }
 
     fun warning(message: String) {
         logger.error(message)
-        logFile.appendText("[WARNING] - $componentName - $message")
+        logFile.appendText("[WARNING] - $componentName - $message\n")
+    }
+
+    fun clean(){
+        logFile.writeText("")
     }
 }

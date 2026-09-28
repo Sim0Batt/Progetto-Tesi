@@ -6,7 +6,7 @@ import java.io.File
 import kotlin.concurrent.thread
 
 class LegacyService(logPath: String): NotifyService {
-    val logger = LoggerWriter(logPath, "LegacyService")
+    val logger = LoggerWriter(logPath, "NotifyLib::LegacyService")
     override fun notify(message: String, notifyStatus: NotifyStatus) {
         System.getProperty("flagFile")?.let { flagPath ->
             updateFlag(flagPath, notifyStatus)

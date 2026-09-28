@@ -2,10 +2,11 @@ package scripts
 
 import configuration.ComponentConfiguration
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
 
 object ProcessLauncher {
-    fun launch(component: ComponentConfiguration): Long {
+    fun launch(component: ComponentConfiguration, pidDir: String) {
         val command = getCommand(component)
 
         val processBuilder = ProcessBuilder(command)
@@ -15,7 +16,9 @@ object ProcessLauncher {
         val pid = reader.readLine()
         process.waitFor()
 
-        return pid.toLongOrNull() ?: throw Exception("Impossible to retrieve the PID")
+        val pidFile = File(pidDir + "${component.name}.pid")
+        pidFile.createNewFile()
+        pidFile.writeText(pid.toLongOrNull()?.toString() ?: "")
     }
 
 

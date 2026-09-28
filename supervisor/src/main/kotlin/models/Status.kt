@@ -1,3 +1,10 @@
 package models
 
-enum class Status {STARTING, READY, FAILED, STOPPING, STOPPED}
+enum class Status {
+    READY,
+    STOPPING,
+    STOPPED,
+    STATUS,
+    REALOADING,
+    ERRNO
+}

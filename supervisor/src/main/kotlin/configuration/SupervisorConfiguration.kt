@@ -12,6 +12,15 @@ class SupervisorConfiguration {
     @field:Element(name = "LogFile", required = true)
     var logFile: String? = null
 
+    @field:Element(name = "PidDir", required = true)
+    var pidDir: String = ""
+
+    @field:Element(name = "SocketDir", required = true)
+    var socketDir: String = ""
+
+    @field:Element(name = "JsonDir", required = true)
+    var jsonDir: String = ""
+
     @field:ElementList(name = "Components", required = true)
     var components: MutableList<ComponentConfiguration>? = mutableListOf()
 }

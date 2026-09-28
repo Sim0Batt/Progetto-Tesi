@@ -4,7 +4,7 @@ import LoggerWriter
 import info.faljse.SDNotify.SDNotify
 
 class SDNotifyService(logPath: String): NotifyService {
-    val logger = LoggerWriter(logPath, "SDNotifyService")
+    val logger = LoggerWriter(logPath, "NotifyLib::SDNotifyService")
 
     override fun notify(message: String, notifyStatus: NotifyStatus) {
         try{

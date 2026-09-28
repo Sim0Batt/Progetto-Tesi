@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.3.21"
+    kotlin("plugin.serialization") version "1.9.10"
 }
 
 group = "org.example"
@@ -13,6 +14,9 @@ val logbackVersion = "1.4.12"
 dependencies {
 
     implementation("org.simpleframework:simple-xml:2.7.1")
+
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.4.3")
+    implementation("io.ktor:ktor-serialization-gson:3.4.3")
 
 
     implementation("org.slf4j:slf4j-api:2.0.9")
