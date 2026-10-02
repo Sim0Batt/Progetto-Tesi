@@ -7,7 +7,7 @@ var mainPath : String = "/home/gaia/etc/supervisor/settings.xml"
 val windowsPath: String = "C:\\Users\\sbattisti\\progetti\\tmp\\supervisor\\settings.xml"
 var macPath : String = "/Users/Simone/workspace/etc/supervisor/settings.xml"
 
-var linuxPath : String = "/home/simone/etc/supervisor/settings.xml"
+var linuxPath : String = "/home/simone/workspace/etc/supervisor/settings.xml"
 
 
 object ReadXMLConfiguration {
