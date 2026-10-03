@@ -22,7 +22,13 @@ internal object Main{
 
                     mainLogger.info("Configuration Loaded, Components: ${config.components?.joinToString("\n")}")
 
+                    val sdListeners = mutableListOf<SDNotifyListener>()
+                    val legacyListeners = mutableListOf<LegacyPollingListener>()
+
+
                     config.components?.forEach {
+                        File(it.logFile).mkdirs()
+                        File(it.logFile).createNewFile()
                         store[it.name!!] = Status.STOPPED
                         ProcessLauncher.launch(it, config.pidDir)
                         mainLogger.info("Component ${it.name} launched")
@@ -31,7 +37,20 @@ internal object Main{
                         listener.start()
                         val legacyListener = LegacyPollingListener(1000, store, it.name!!, it.flagFile!!, mainLogger)
                         legacyListener.start()
+
+                        sdListeners.add(listener)
+                        legacyListeners.add(legacyListener)
                     }
+
+                    Runtime.getRuntime().addShutdownHook(Thread {
+                        mainLogger.info("Spegnimento in corso, fermo i listener...")
+                        sdListeners.forEach { it.stop() }
+                        legacyListeners.forEach { it.stop() }
+                    })
+
+                    // Tieni in vita il main thread
+                    Thread.currentThread().join()
+
                 }catch (e: Exception){
                     mainLogger.error(e.stackTraceToString())
                 }

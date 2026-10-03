@@ -8,8 +8,6 @@ class ComponentConfiguration {
     var name: String? = null
     @field:Attribute(name = "path", required = true)
     var path: String? = null
-    @field:Attribute(name = "notify", required = false)
-    var notify: String? = "LEGACY"
     @field:Attribute(name = "logFile", required = true)
     var logFile: String = ""
     @field:Attribute(name = "maxHeap", required = false)
@@ -18,6 +16,6 @@ class ComponentConfiguration {
     var flagFile: String? = "/tmp/test.flag"
 
     override fun toString(): String {
-        return "ComponentConfiguration(name=$name, path=$path, notify=$notify, logFile=$logFile, maxHeap=$maxHeap, flagFile=$flagFile)"
+        return "ComponentConfiguration(name=$name, path=$path, logFile=$logFile, maxHeap=$maxHeap, flagFile=$flagFile)"
     }
 }

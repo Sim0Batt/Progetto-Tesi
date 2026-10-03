@@ -42,3 +42,14 @@ kotlin {
 tasks.test {
     useJUnitPlatform()
 }
+
+tasks {
+    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+        archiveFileName.set("Test1Service.jar")
+        archiveBaseName.set("shadow")
+        mergeServiceFiles()
+        manifest {
+            attributes(mapOf("Main-Class" to "Main"))
+        }
+    }
+}

@@ -1,1 +1,5 @@
-supervisor/.idea/AndroidProjectSystem.xml
+supervisor/.idea/
+notifylib/.idea/
+ServerTemplate/.idea/
+ServerTemplate/build/
+notifylib/build

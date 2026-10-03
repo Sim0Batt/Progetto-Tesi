@@ -5,8 +5,11 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import kotlinx.serialization.json.Json
+import supervision.NotifyStatus
+import java.io.File
 
 
 fun Application.module() {
@@ -31,7 +34,36 @@ fun Application.module() {
 
     }
 
+    val serviceName = "test1"
+
+    val logFile = "/home/simone/workspace/log/$serviceName/service.log"
+
+    if(!File(logFile).parentFile.exists()) {
+        File(logFile).parentFile.mkdirs()
+        File(logFile).createNewFile()
+    }
+    val sdNotify = NotifyServiceFactory.createSDNotify(logFile)
+    val legacyNotify = NotifyServiceFactory.createLegacy(logFile)
+
+    monitor.subscribe(ApplicationStarted) {
+        sdNotify.notify("Service $serviceName started and ready", NotifyStatus.READY)
+        legacyNotify.notify("Service $serviceName started and ready", NotifyStatus.READY)
+    }
+
+    monitor.subscribe(ApplicationStopping) {
+        sdNotify.notify("Service $serviceName is stopping", NotifyStatus.STOPPING)
+        legacyNotify.notify("Service $serviceName is stopping", NotifyStatus.STOPPING)
+    }
+
+    monitor.subscribe(ApplicationStopped) {
+        sdNotify.notify("Service $serviceName is stopping", NotifyStatus.STOPPED)
+        legacyNotify.notify("Service $serviceName is stopping", NotifyStatus.STOPPED)
+    }
+
     routing {
+        get("/"){
+            NotifyServiceFactory.createSDNotify(logFile)
+        }
 
     }
 }

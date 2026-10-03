@@ -2,6 +2,8 @@ package scripts
 
 import models.Status
 import models.StatusJson
+import org.newsclub.net.unix.AFUNIXDatagramChannel
+import org.newsclub.net.unix.AFUNIXSocketAddress
 import java.io.File
 import java.net.StandardProtocolFamily
 import java.net.UnixDomainSocketAddress
@@ -10,30 +12,24 @@ import java.nio.channels.DatagramChannel
 import kotlin.concurrent.thread
 
 class SDNotifyListener(val componentName: String, val socketPath: String, val logger: LoggerWriter, val jsonDir: String){
-    private var channel: DatagramChannel? = null
+    private var channel: AFUNIXDatagramChannel? = null
     fun start(){
-        val socketFile = File("$socketPath$componentName.sock")
+        val socketFile = File("$socketPath/$componentName.sock")
         if (socketFile.exists()) {
             socketFile.delete()
         }
-
-        val address = UnixDomainSocketAddress.of("$socketPath$componentName.sock")
-        channel = DatagramChannel.open(StandardProtocolFamily.UNIX)
+        val address = AFUNIXSocketAddress.of(socketFile)
+        channel = AFUNIXDatagramChannel.open()
         channel!!.bind(address)
-
-        logger.info("Started Listener $componentName su $socketPath$componentName.sock")
-
+        logger.info("Started Listener $componentName su $socketPath/$componentName.sock")
         thread (isDaemon = true, name = "Listener-$componentName") {
             val buffer = ByteBuffer.allocate(1024)
             while (true) {
                 buffer.clear()
                 channel!!.receive(buffer)
                 buffer.flip()
-
                 val message = String(buffer.array(), 0, buffer.limit())
-
                 var state: Status? = null
-
                 message.lines().forEach { line ->
                     when {
                         line == "READY=1" -> {
@@ -54,13 +50,12 @@ class SDNotifyListener(val componentName: String, val socketPath: String, val lo
                         }
                     }
                 }
-
                 if (state != null) {
                     if(File("$jsonDir$componentName.json").exists()){
-                        File("$jsonDir$componentName.json").writeText(StatusJson(state.name, "").toString())
+                        File("$jsonDir$componentName.json").writeText(StatusJson(state!!.name, "").toString())
                     }else{
                         File("$jsonDir$componentName.json").createNewFile()
-                        File("$jsonDir$componentName.json").writeText(StatusJson(state.name, "").toString())
+                        File("$jsonDir$componentName.json").writeText(StatusJson(state!!.name, "").toString())
                     }
                 }
             }

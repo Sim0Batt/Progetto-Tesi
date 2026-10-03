@@ -22,8 +22,9 @@ object ProcessLauncher {
     }
 
 
-    fun getCommand(component: ComponentConfiguration): String{
+    fun getCommand(component: ComponentConfiguration): List<String>{
         val jarCommand = "nohup java -Xmx${component.maxHeap} -DflagFile=${component.flagFile} -jar ${component.path} > ${component.logFile} 2>&1 & echo $!"
-        return "sh -c '$jarCommand'"
+        // Separa i parametri e rimuovi gli apici singoli attorno a jarCommand
+        return listOf("sh", "-c", jarCommand)
     }
 }
