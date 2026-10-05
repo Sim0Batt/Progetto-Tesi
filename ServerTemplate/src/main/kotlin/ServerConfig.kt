@@ -12,6 +12,8 @@ import supervision.NotifyStatus
 import java.io.File
 
 
+val port = System.getProperty("port")?.toInt() ?: 8080
+
 fun Application.module() {
     install(ContentNegotiation) {
         json(Json { ignoreUnknownKeys = true })
@@ -42,7 +44,7 @@ fun Application.module() {
         File(logFile).parentFile.mkdirs()
         File(logFile).createNewFile()
     }
-    val sdNotify = NotifyServiceFactory.createSDNotify(logFile)
+    val sdNotify = NotifyServiceFactory.createSDNotify(logFile, serviceName)
     val legacyNotify = NotifyServiceFactory.createLegacy(logFile)
 
     monitor.subscribe(ApplicationStarted) {
@@ -62,7 +64,7 @@ fun Application.module() {
 
     routing {
         get("/"){
-            NotifyServiceFactory.createSDNotify(logFile)
+            NotifyServiceFactory.createSDNotify(logFile, serviceName)
         }
 
     }
@@ -72,7 +74,7 @@ object ServerConfig {
     fun run(args: Array<String> = emptyArray()) {
         embeddedServer(
             Netty,
-            port = 8080,
+            port = port,
             host = "0.0.0.0",
             module = Application::module
         ).start(wait = true)

@@ -30,6 +30,9 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
 
+    implementation("com.kohlschutter.junixsocket:junixsocket-core:2.11.1")
+
+
     runtimeOnly("org.slf4j:slf4j-api:2.0.9")
     runtimeOnly("ch.qos.logback:logback-classic:$logbackVersion")
     testImplementation(kotlin("test"))

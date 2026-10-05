@@ -4,6 +4,7 @@ import scripts.LegacyPollingListener
 import scripts.LoggerWriter
 import scripts.ProcessLauncher
 import scripts.SDNotifyListener
+import scripts.StatusManager
 import java.io.File
 
 internal object Main{
@@ -13,6 +14,8 @@ internal object Main{
         val config = ReadXMLConfiguration.getConfiguration()
         val mainLogger = LoggerWriter(config.logFile!!, "Supervisor")
         val supervisorPidFile = config.pidDir + "supervisor.pid"
+        val processLauncher = ProcessLauncher(config.pidDir, mainLogger)
+        val supervisioner = StatusManager(config.components!!)
 
         when{
             args.contains("start") -> {
@@ -25,30 +28,34 @@ internal object Main{
                     val sdListeners = mutableListOf<SDNotifyListener>()
                     val legacyListeners = mutableListOf<LegacyPollingListener>()
 
+                    Runtime.getRuntime().addShutdownHook(Thread {
+                        mainLogger.info("Spegnimento in corso, fermo i componenti...")
+
+                        config.components!!.forEach { component ->
+                            processLauncher.stopComponent(component.name!!)
+                        }
+
+                        sdListeners.forEach { it.stop() }
+                        legacyListeners.forEach { it.stop() }
+                        File(supervisorPidFile).delete()
+                    })
 
                     config.components?.forEach {
-                        File(it.logFile).mkdirs()
-                        File(it.logFile).createNewFile()
+                        File(it.logFile).parentFile.mkdirs()
                         store[it.name!!] = Status.STOPPED
-                        ProcessLauncher.launch(it, config.pidDir)
-                        mainLogger.info("Component ${it.name} launched")
-                        LoggerWriter(it.logFile, "Supervisor").info("Component ${it.name} started from Supervisor")
+
                         val listener = SDNotifyListener(it.name!!, config.socketDir, mainLogger, config.jsonDir)
                         listener.start()
+                        sdListeners.add(listener)
+
+                        processLauncher.launch(it)
+                        mainLogger.info("Component ${it.name} launched")
+
                         val legacyListener = LegacyPollingListener(1000, store, it.name!!, it.flagFile!!, mainLogger)
                         legacyListener.start()
-
-                        sdListeners.add(listener)
                         legacyListeners.add(legacyListener)
                     }
 
-                    Runtime.getRuntime().addShutdownHook(Thread {
-                        mainLogger.info("Spegnimento in corso, fermo i listener...")
-                        sdListeners.forEach { it.stop() }
-                        legacyListeners.forEach { it.stop() }
-                    })
-
-                    // Tieni in vita il main thread
                     Thread.currentThread().join()
 
                 }catch (e: Exception){
@@ -71,6 +78,30 @@ internal object Main{
                     mainLogger.error(e.stackTraceToString())
                 }
             }
+
+            args.contains("stopcomponent") -> {
+                processLauncher.stopComponent(args[1])
+                mainLogger.info("Component ${args[1]} stopped")
+            }
+
+            args.contains("startcomponent") -> {
+                processLauncher.startComponent(args[1], config.components!!)
+                mainLogger.info("Component ${args[1]} started")
+            }
+
+            args.contains("status") -> {
+                while(true){
+                    println("\u001B[2J\u001B[H")
+                    println(supervisioner.getString())
+                    Thread.sleep(1000)
+                }
+            }
         }
     }
 }
+
+/* COMANDO DI LANCIO
+nohup /home/simone/.sdkman/candidates/java/25.0.3-tem/bin/java \
+  -jar /home/simone/workspace/Progetto-Tesi/supervisor/build/libs/supervisor.jar start \
+  </dev/null >/tmp/supervisor-startup.log 2>&1 &
+*/

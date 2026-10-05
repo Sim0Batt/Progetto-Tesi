@@ -20,6 +20,8 @@ dependencies {
 
     implementation("info.faljse:SDNotify:1.6")
 
+    implementation("com.kohlschutter.junixsocket:junixsocket-core:2.11.1")
+
     testImplementation(kotlin("test"))
 }
 

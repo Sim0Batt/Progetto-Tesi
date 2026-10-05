@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.3.21"
     kotlin("plugin.serialization") version "1.9.10"
+    id("com.gradleup.shadow") version "8.3.2"
 }
 
 group = "org.example"
@@ -32,4 +33,15 @@ kotlin {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks {
+    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+        archiveFileName.set("supervisor.jar")
+        archiveBaseName.set("shadow")
+        mergeServiceFiles()
+        manifest {
+            attributes(mapOf("Main-Class" to "Main"))
+        }
+    }
 }

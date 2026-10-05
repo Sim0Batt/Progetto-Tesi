@@ -1,65 +1,45 @@
 package supervision
 
 import LoggerWriter
-import info.faljse.SDNotify.SDNotify
+import org.newsclub.net.unix.AFUNIXDatagramChannel
+import org.newsclub.net.unix.AFUNIXSocketAddress
+import java.io.File
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
-class SDNotifyService(logPath: String): NotifyService {
+class SDNotifyService(logPath: String, val componentName: String): NotifyService {
     val logger = LoggerWriter(logPath, "NotifyLib::SDNotifyService")
 
     override fun notify(message: String, notifyStatus: NotifyStatus) {
         try{
-            val socketPath = System.getenv("NOTIFY_SOCKET")
-            if (socketPath.isNullOrBlank()) throw Exception("NOTIFY_SOCKET environment variable is not set")
+            val socketPath = "/home/simone/workspace/etc/supervisor/sockets/$componentName.sock"
+            require(File(socketPath).exists()) { "Socket file not found in $socketPath" }
 
-            val command: MutableList<String> = mutableListOf("systemd-notify ")
-            when (notifyStatus) {
-                NotifyStatus.READY -> {
-                    command.add("--pid=${ProcessHandle.current().pid()} ")
-                    command.add("--READY=1")
-                    logger.info("Sent Ready notification")
-                }
-
-                NotifyStatus.STOPPING -> {
-                    command.add("--STOPPING=1")
-                    logger.info("Sent Stopping notification")
-                }
-
-                NotifyStatus.STOPPED -> {
-                    command.add("--STOPPED=1")
-                    logger.info("Sent Stopped notification")
-                }
-
-                NotifyStatus.REALOADING -> {
-                    command.add("--RELOADING=1")
-                    logger.info("Sent Reloading notification")
-                }
-
-                NotifyStatus.ERRNO -> {
-                    command.add("--ERRNO=1")
-                    logger.info("Sent Failed notification")
-                }
-
-                NotifyStatus.STATUS -> {
-                    command.add("--STATUS=$message")
+            val notification = when (notifyStatus) {
+                NotifyStatus.READY -> "READY=1".also { logger.info("Sent Ready notification") }
+                NotifyStatus.STOPPING -> "STOPPING=1".also { logger.info("Sent Stopping notification") }
+                NotifyStatus.STOPPED -> "STOPPED=1".also { logger.info("Sent Stopped notification") }
+                NotifyStatus.REALOADING -> "RELOADING=1".also { logger.info("Sent Reloading notification") }
+                NotifyStatus.ERRNO -> "ERRNO=1".also { logger.info("Sent Failed notification") }
+                NotifyStatus.STATUS -> "STATUS=${message.replace('\n', ' ').replace('\r', ' ')}".also {
                     logger.info("Sent Status notification with message: $message")
                 }
-
             }
 
-            if (message.isNotBlank() && notifyStatus != NotifyStatus.STATUS) {
-                command.add("--STATUS=$message")
+            val lines = buildList {
+                add(notification)
+                if (message.isNotBlank() && notifyStatus != NotifyStatus.STATUS) {
+                    add("STATUS=${message.replace('\n', ' ').replace('\r', ' ')}")
+                }
             }
+            val payload = lines.joinToString("\n").toByteArray(StandardCharsets.UTF_8)
+            val address = AFUNIXSocketAddress.of(File(socketPath))
 
-            val process = ProcessBuilder(command)
-                .redirectErrorStream(true)
-                .start()
-
-            val output = process.inputStream.bufferedReader().readText()
-            val exitCode = process.waitFor()
-
-            if (exitCode != 0) {
-                logger.error("Failed to send notification, exit code $exitCode: $output")
-                throw Exception("Failed to send notification, exit code $exitCode: $output")
+            AFUNIXDatagramChannel.open().use { channel ->
+                val sentBytes = channel.send(ByteBuffer.wrap(payload), address)
+                check(sentBytes == payload.size) {
+                    "Sent $sentBytes of ${payload.size} notification bytes"
+                }
             }
         }catch (e: Exception){
             logger.error("Failed to send notification: $e")

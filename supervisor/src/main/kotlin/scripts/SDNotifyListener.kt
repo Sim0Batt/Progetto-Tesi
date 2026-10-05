@@ -21,7 +21,7 @@ class SDNotifyListener(val componentName: String, val socketPath: String, val lo
         val address = AFUNIXSocketAddress.of(socketFile)
         channel = AFUNIXDatagramChannel.open()
         channel!!.bind(address)
-        logger.info("Started Listener $componentName su $socketPath/$componentName.sock")
+        logger.info("Started Listener $componentName su $socketPath$componentName.sock")
         thread (isDaemon = true, name = "Listener-$componentName") {
             val buffer = ByteBuffer.allocate(1024)
             while (true) {
@@ -39,6 +39,10 @@ class SDNotifyListener(val componentName: String, val socketPath: String, val lo
                         line == "STOPPING=1" ->  {
                             logger.info("Component $componentName is stopping")
                             state = Status.STOPPING
+                        }
+                        line == "STOPPED=1" -> {
+                            logger.info("Component $componentName stopped")
+                            state = Status.STOPPED
                         }
                         line == "RELOADING=1" -> {
                             logger.info("Component $componentName is reloading")

@@ -6,6 +6,8 @@ import org.simpleframework.xml.Element
 class ComponentConfiguration {
     @field:Attribute(name = "name", required = true)
     var name: String? = null
+    @field:Attribute(name = "port", required = true)
+    var port: String? = null
     @field:Attribute(name = "path", required = true)
     var path: String? = null
     @field:Attribute(name = "logFile", required = true)

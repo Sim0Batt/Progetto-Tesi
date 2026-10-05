@@ -29,13 +29,10 @@ class LegacyService(logPath: String): NotifyService {
         try {
             val flagFile = File(path)
 
-            /* FAILED status must be written only after an INITIALIZING status has been written, so the flag file must
-             * exist: if it doesn't exist, an external program (ex. Supervisor) has deleted it using its own logic */
             if (state == NotifyStatus.ERRNO && !flagFile.exists()) {
                 logger.info("Skipping write of FAILED status on non existing flag file ${flagFile.absolutePath}")
                 return
             }
-            /* Avoid overwriting the status (due to the shutdown hook) if a FAILED status has already been written */
             else if (state == NotifyStatus.ERRNO && "\"status\":\"FAILED\"" in flagFile.readText()) {
                 logger.info("Skipping write of FAILED status on already FAILED flag file ${flagFile.absolutePath}")
                 return

@@ -1,5 +1,0 @@
-package scripts
-
-class Supervisioner {
-
-}
